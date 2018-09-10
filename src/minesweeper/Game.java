@@ -172,8 +172,6 @@ public class Game extends JFrame{
 		{
 			//System.out.print(list.get(count) + " ");
 		}
-		
-		
 		for(count = 0; count < chooseLevel; count++)
 		{
 			for(count2 = 0; count2 < chooseLevel; count2++)
