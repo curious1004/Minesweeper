@@ -13,6 +13,8 @@ import java.awt.event.MouseListener;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
+import java.util.Timer;
+import java.util.TimerTask;
 
 import javax.swing.BoxLayout;
 import javax.swing.JButton;
@@ -44,25 +46,98 @@ public class Game extends JFrame{
 	int chooseLevel;
 	int count,count2;//use to for loop board
 	int boomCount;
+	int timeCount;
 	int [] boomArray;
-	int k;
 	int remainBoom;
+	
 	boolean gameover;
+	int gamefinish;
+	List<Integer> list;
+	
 	public Game() {
-		super("Demo");
-		chooseLevel=8;
+		super("Minesweeper");
+		chooseLevel=9;
 		boomCount = 10;
 		remainBoom = boomCount;
+		
 		Setting();
+	}
+	public void showNeighbor(int row, int col)
+	{
+		
+		if(row >=0 && row <= chooseLevel -1 && col >=0 && col <=chooseLevel - 1)
+		{
+			int total = 0;
+			for(int smallrow = row-1;smallrow <= row +1;smallrow++)
+			{	if(smallrow <0)
+				{	
+					smallrow=0;
+					
+				}
+				else if(smallrow >= chooseLevel)
+				{	
+					smallrow = chooseLevel-1;
+					break;
+				}
+				for(int smallcol = col-1;smallcol <= col +1;smallcol++)
+				{
+					if(smallcol <0)
+					{	
+						smallcol=0;
+						
+					}
+					else if(smallcol >= chooseLevel)
+					{	
+						smallcol = chooseLevel-1;
+						break;
+					}
+					
+					for(int boomNumber=0; boomNumber< boomCount;boomNumber++)
+					{
+						if((smallrow * chooseLevel + smallcol) == list.get(boomNumber))
+						{
+							total++;
+						}
+					}
+				}
+			}
+			
+			
+			
+			if(total == 0)
+			{	
+				buttons[row][col].setEnabled(false);
+				
+				if(row-1 >=0 && buttons[row-1][col].isEnabled() == true)
+					showNeighbor(row-1,col);
+				if(col-1 >=0 && buttons[row][col-1].isEnabled() == true)
+					showNeighbor(row,col-1);
+				if(row+1 <= chooseLevel-1 && buttons[row+1][col].isEnabled() == true)
+					showNeighbor(row+1,col);
+				if(col+1 <= chooseLevel-1 && buttons[row][col+1].isEnabled() == true)
+					showNeighbor(row,col+1);
+			}
+			else
+			{	
+				buttons[row][col].setText(""+total);
+				buttons[row][col].setFont(new Font("Arial", Font.PLAIN, 30));
+			}
+		}
+		
+		
+		
+		
 	}
 	public void Setting()
 	{
+		final Timer timer  = new Timer();
 		
+		timeCount = 0;
 		gameover = false;
 		container = getContentPane();
 
 		buttons = new JButton[chooseLevel][];
-		
+		remainBoom = boomCount;
 		for(int levelCount = 0;levelCount < chooseLevel;levelCount++)
 		{
 			buttons[levelCount] = new JButton[chooseLevel];
@@ -81,7 +156,7 @@ public class Game extends JFrame{
 		buttonJPanel3.setLayout(new GridLayout(1, 4));
 		
 		boomArray = new int[boomCount];
-		List<Integer> list = new ArrayList<Integer>();
+		list = new ArrayList<Integer>();
 		Random rand = new Random();
 		do {
 			int next = rand.nextInt(chooseLevel*chooseLevel);
@@ -94,13 +169,8 @@ public class Game extends JFrame{
 		
 		for(count = 0; count < boomCount; count++)
 		{
-			//int n = (int)(Math.random()*boomCount);
-			//boomArray[count] = n;
-			System.out.print(list.get(count) + " ");
+			//System.out.print(list.get(count) + " ");
 		}
-		System.out.println();
-		
-		k=0;
 		for(count = 0; count < chooseLevel; count++)
 		{
 			for(count2 = 0; count2 < chooseLevel; count2++)
@@ -115,8 +185,19 @@ public class Game extends JFrame{
 						
 						if(e.getButton() == MouseEvent.BUTTON1)//left mouse
 						{
+							if(timeCount==0)
+							{
+								timer.schedule(new TimerTask() 
+								{
+									public void run() {
+										timeCount ++;
+										counterTime2.setText(""+timeCount);
+									}
+								
+								},0,1000);	
+							}
 							
-							//System.out.println("左鍵");
+						
 							for(int boomNumber=0; boomNumber< boomCount;boomNumber++)
 							{
 								if((row * chooseLevel + col) == list.get(boomNumber))//judge if is a boom
@@ -127,6 +208,9 @@ public class Game extends JFrame{
 									break;
 								}
 							}
+							
+							
+							
 							
 							if(gameover)//game over, then start a new game
 							{
@@ -144,59 +228,131 @@ public class Game extends JFrame{
 										}
 									}
 								}
+								timer.cancel();
+								timer.purge();
 								System.out.println("踩到地雷 遊戲結束");
 								JOptionPane.showMessageDialog(null, "Game Over", "Display Message",JOptionPane.INFORMATION_MESSAGE);
 								
-							
+								
 								buttonJPanel.removeAll();
 								buttonJPanel2.removeAll();
-								Setting();
+								Setting();//restart a new game
 							}else 
 							{
-								//?????顯示周遭幾顆地雷
-								int total = 0;
-								for(int smallrow = row-1;smallrow <= row +1;smallrow++)
+								showNeighbor(row, col);//show neighbor number of booms
+								
+								gamefinish = 0;
+								
+								for(int countSmall = 0; countSmall < chooseLevel; countSmall++)
 								{
-									for(int smallcol = col-1;smallcol <= col +1;smallcol++)
+									for(int countSmall2 = 0; countSmall2 < chooseLevel; countSmall2++)
 									{
-										for(int boomNumber=0; boomNumber< boomCount;boomNumber++)
+										
+										if(buttons[countSmall][countSmall2].isEnabled() == false||
+										   buttons[countSmall][countSmall2].getText().equals("1") ||
+										   buttons[countSmall][countSmall2].getText().equals("2") ||	
+										   buttons[countSmall][countSmall2].getText().equals("3") ||
+										   buttons[countSmall][countSmall2].getText().equals("4") ||
+										   buttons[countSmall][countSmall2].getText().equals("5") ||	
+										   buttons[countSmall][countSmall2].getText().equals("6") ||
+										   buttons[countSmall][countSmall2].getText().equals("7") ||
+										   buttons[countSmall][countSmall2].getText().equals("8") ||	
+										   buttons[countSmall][countSmall2].getText().equals("9") ||
+										   buttons[countSmall][countSmall2].getText().equals("^")
+										  )	
 										{
-											if((smallrow * chooseLevel + smallcol) == list.get(boomNumber))
-											{
-												total++;
-											}
+											gamefinish = 1;
+										}else {
+											
+											gamefinish = -1; 
+											break;
 										}
 									}
+									
+									if(gamefinish == -1)
+										break;	
 								}
-								buttons[row][col].setText(""+total);
-								buttons[row][col].setFont(new Font("Arial", Font.PLAIN, 30));
+								
+								if(gamefinish == 1)
+								{
+									timer.cancel();
+									timer.purge();
+									System.out.println("遊戲成功");
+									JOptionPane.showMessageDialog(null, "Game Finish", "Display Message",JOptionPane.INFORMATION_MESSAGE);
+									
+								
+									buttonJPanel.removeAll();
+									buttonJPanel2.removeAll();
+									Setting();
+								}	
 							}
 							
 						}
 						if(e.getButton() == MouseEvent.BUTTON3)//right mouse
 						{
-							remainBoom--;
-							counterText2.setText("" + remainBoom);
 							
-							System.out.println("右鍵");
-							buttons[row][col].setText("^");
-							buttons[row][col].setFont(new Font("Arial", Font.PLAIN, 30));
+							
+							if(buttons[row][col].getText().equals(""))//^ means this location has boom
+							{
+								remainBoom--;
+								counterText2.setText("" + remainBoom);
+								buttons[row][col].setText("^");
+								buttons[row][col].setFont(new Font("Arial", Font.PLAIN, 30));
+							}
+							else if(buttons[row][col].getText().equals("^"))
+								buttons[row][col].setText("?");
+							else if(buttons[row][col].getText().equals("?"))
+							{	
+								buttons[row][col].setText("");
+								remainBoom++;
+								counterText2.setText("" + remainBoom);	
+							}
+							
+							gamefinish = 0;
+							for(int countSmall = 0; countSmall < chooseLevel; countSmall++)
+							{
+								for(int countSmall2 = 0; countSmall2 < chooseLevel; countSmall2++)
+								{
+									if(buttons[countSmall][countSmall2].isEnabled() == false||
+									   buttons[countSmall][countSmall2].getText().equals("1") ||
+									   buttons[countSmall][countSmall2].getText().equals("2") ||	
+									   buttons[countSmall][countSmall2].getText().equals("3") ||
+									   buttons[countSmall][countSmall2].getText().equals("4") ||
+									   buttons[countSmall][countSmall2].getText().equals("5") ||	
+									   buttons[countSmall][countSmall2].getText().equals("6") ||
+									   buttons[countSmall][countSmall2].getText().equals("7") ||
+									   buttons[countSmall][countSmall2].getText().equals("8") ||	
+									   buttons[countSmall][countSmall2].getText().equals("9") ||
+									   buttons[countSmall][countSmall2].getText().equals("^")
+									  )	
+									{
+										gamefinish = 1;
+									}else {
+										gamefinish = -1;
+										break;
+									}
+								}
+								if(gamefinish == -1)
+									break;	
+							}
+							if(gamefinish == 1)
+							{
+								System.out.println("遊戲成功");
+								JOptionPane.showMessageDialog(null, "Game Finish", "Display Message",JOptionPane.INFORMATION_MESSAGE);
+								
+							
+								buttonJPanel.removeAll();
+								buttonJPanel2.removeAll();
+								Setting();
+							}	
 						}
-						/*
-						buttons[row-1][col].setBackground(Color.BLUE);
-						buttons[row][col-1].setBackground(Color.BLUE);
-						buttons[row+1][col].setBackground(Color.BLUE);
-						buttons[row][col+1].setBackground(Color.BLUE);*/
+						
 					}
-//					public void mouseEntered(MouseEvent e){}
-//					public void mouseExited(MouseEvent e){}
-//					public void mousePressed(MouseEvent e){}
-//					public void mouseReleased(MouseEvent e){}
 
 				});
 				
 				
-				k++;
+				
 			}
 		}
 		
@@ -209,7 +365,7 @@ public class Game extends JFrame{
 		input[1]= "初級";
 		input[2]= "中級";
 		input[3]= "高級";
-		input[4]= "CHOOSE";
+		input[4]= "設定";
 		input[5]= "剩餘地雷";
 		input[6]= "時間";
 		for(count = 0; count < 5;count++)
@@ -236,7 +392,7 @@ public class Game extends JFrame{
 		counterTime.setFont(new Font("\\u6B22\\u8FCE\\u4F7F\\u7528", Font.PLAIN, 30));
 		counterTime.setHorizontalAlignment(JTextField.RIGHT);
 		
-		counterTime2 = new JTextField("0");
+		counterTime2 = new JTextField("" + timeCount);
 		counterTime2.setFont(new Font("Arial", Font.PLAIN, 30));
 		counterTime2.setHorizontalAlignment(JTextField.CENTER);
 		
@@ -249,7 +405,7 @@ public class Game extends JFrame{
 		add(buttonJPanel, BorderLayout.CENTER);
 		add(buttonJPanel2, BorderLayout.NORTH);
 		add(buttonJPanel3, BorderLayout.SOUTH);
-		container.revalidate();//??validate
+		container.validate();//??validate
 		
 	}
 	class ReStartListener implements ActionListener{
@@ -258,6 +414,7 @@ public class Game extends JFrame{
 			remainBoom = boomCount;
 			buttonJPanel.removeAll();
 			buttonJPanel2.removeAll();
+			timeCount = 0;
 			Setting();
 		}
 	}
@@ -265,9 +422,10 @@ public class Game extends JFrame{
 		public void actionPerformed(ActionEvent event)
 		{
 			
-			chooseLevel= 8;
+			chooseLevel= 9;
 			boomCount = 10;
 			remainBoom = boomCount;
+			
 			buttonJPanel.removeAll();
 			buttonJPanel2.removeAll();
 			//buttonJPanel.setVisible(false);
@@ -280,9 +438,10 @@ public class Game extends JFrame{
 		public void actionPerformed(ActionEvent event)
 		{
 			
-			chooseLevel=12;
-			boomCount = 20;
+			chooseLevel=16;
+			boomCount = 40;
 			remainBoom = boomCount;
+			
 			buttonJPanel.removeAll();
 			buttonJPanel2.removeAll();
 			//buttonJPanel.setVisible(false);
@@ -295,8 +454,9 @@ public class Game extends JFrame{
 		{
 			
 			chooseLevel=20;
-			boomCount = 50;
+			boomCount = 99;
 			remainBoom = boomCount;
+			
 			buttonJPanel.removeAll();
 			buttonJPanel2.removeAll();
 			//buttonJPanel.setVisible(false);
