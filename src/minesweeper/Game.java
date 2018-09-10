@@ -62,7 +62,6 @@ public class Game extends JFrame{
 		
 		Setting();
 	}
-	
 	public void showNeighbor(int row, int col)
 	{
 		
