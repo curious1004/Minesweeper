@@ -64,8 +64,7 @@ public class Game extends JFrame{
 	}
 	
 	public void showNeighbor(int row, int col)
-	{
-		
+	{	
 		if(row >=0 && row <= chooseLevel -1 && col >=0 && col <=chooseLevel - 1)
 		{
 			int total = 0;
