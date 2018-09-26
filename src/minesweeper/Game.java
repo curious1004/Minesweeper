@@ -41,7 +41,7 @@ public class Game extends JFrame{
 	JTextField counterText2;//show the step frequency
 	JTextField counterTime;//the total time text
 	JTextField counterTime2;//show the total time
-	
+    Timer timer;
 	Container container;
 	int chooseLevel;
 	int count,count2;//use to for loop board
@@ -131,9 +131,9 @@ public class Game extends JFrame{
 	}
 	public void Setting()
 	{
-		final Timer timer  = new Timer();
+		 timer  = new Timer();
 		
-		timeCount = 0;
+		timeCount = -1;
 		gameover = false;
 		container = getContentPane();
 
@@ -186,7 +186,7 @@ public class Game extends JFrame{
 						
 						if(e.getButton() == MouseEvent.BUTTON1)//left mouse
 						{
-							if(timeCount==0)
+							if(timeCount==-1)
 							{
 								timer.schedule(new TimerTask() 
 								{
@@ -338,9 +338,10 @@ public class Game extends JFrame{
 							}
 							if(gamefinish == 1)
 							{
+								timer.cancel();
+								timer.purge();
 								System.out.println("遊戲成功");
-								JOptionPane.showMessageDialog(null, "Game Finish", "Display Message",JOptionPane.INFORMATION_MESSAGE);
-								
+								JOptionPane.showMessageDialog(null, "Game Finish", "Display Message",JOptionPane.INFORMATION_MESSAGE);			
 							
 								buttonJPanel.removeAll();
 								buttonJPanel2.removeAll();
@@ -380,6 +381,7 @@ public class Game extends JFrame{
 		buttons2[1].addActionListener(new EasyListener());
 		buttons2[2].addActionListener(new MidListener());
 		buttons2[3].addActionListener(new HardListener());
+		buttons2[4].addActionListener(new SettingListener());
 	/*-------------------------------------------------------------------*/	
 		counterText = new JTextField(input[5]);
 		counterText.setFont(new Font("\\u6B22\\u8FCE\\u4F7F\\u7528", Font.PLAIN, 30));
@@ -393,7 +395,7 @@ public class Game extends JFrame{
 		counterTime.setFont(new Font("\\u6B22\\u8FCE\\u4F7F\\u7528", Font.PLAIN, 30));
 		counterTime.setHorizontalAlignment(JTextField.RIGHT);
 		
-		counterTime2 = new JTextField("" + timeCount);
+		counterTime2 = new JTextField("" + 0);
 		counterTime2.setFont(new Font("Arial", Font.PLAIN, 30));
 		counterTime2.setHorizontalAlignment(JTextField.CENTER);
 		
@@ -406,31 +408,32 @@ public class Game extends JFrame{
 		add(buttonJPanel, BorderLayout.CENTER);
 		add(buttonJPanel2, BorderLayout.NORTH);
 		add(buttonJPanel3, BorderLayout.SOUTH);
-		container.validate();//??validate
+		container.validate();
 		
 	}
 	class ReStartListener implements ActionListener{
 		public void actionPerformed(ActionEvent event)
 		{
+			timer.cancel();
+			timer.purge();
 			remainBoom = boomCount;
 			buttonJPanel.removeAll();
 			buttonJPanel2.removeAll();
-			timeCount = 0;
 			Setting();
 		}
 	}
 	class EasyListener implements ActionListener{
 		public void actionPerformed(ActionEvent event)
 		{
-			
+			timer.cancel();
+			timer.purge();
 			chooseLevel= 9;
 			boomCount = 10;
 			remainBoom = boomCount;
 			
 			buttonJPanel.removeAll();
 			buttonJPanel2.removeAll();
-			//buttonJPanel.setVisible(false);
-			//buttonJPanel2.setVisible(false);
+		
 			Setting();
 		}
 	}
@@ -438,34 +441,54 @@ public class Game extends JFrame{
 	class MidListener implements ActionListener{
 		public void actionPerformed(ActionEvent event)
 		{
-			
+			timer.cancel();
+			timer.purge();
 			chooseLevel=16;
 			boomCount = 40;
 			remainBoom = boomCount;
 			
 			buttonJPanel.removeAll();
 			buttonJPanel2.removeAll();
-			//buttonJPanel.setVisible(false);
-			//buttonJPanel2.setVisible(false);
+			
 			Setting();
 		}
 	}
 	class HardListener implements ActionListener{
 		public void actionPerformed(ActionEvent event)
 		{
-			
+			timer.cancel();
+			timer.purge();
 			chooseLevel=20;
 			boomCount = 99;
 			remainBoom = boomCount;
 			
 			buttonJPanel.removeAll();
 			buttonJPanel2.removeAll();
-			//buttonJPanel.setVisible(false);
-			//buttonJPanel2.setVisible(false);
+			
 			Setting();
 		}
 	}
-	
+	class SettingListener implements ActionListener{
+		public void actionPerformed(ActionEvent event)
+		{
+			String inputRange=JOptionPane.showInputDialog("請輸入範圍");
+			String inputBoom;
+			do {
+				inputBoom=JOptionPane.showInputDialog("請輸入炸彈數量");
+			}while(Integer.parseInt(inputBoom) >= Integer.parseInt(inputRange) * Integer.parseInt(inputRange));
+			
+			timer.cancel();
+			timer.purge();
+			chooseLevel= Integer.parseInt(inputRange);
+			boomCount = Integer.parseInt(inputBoom);
+			remainBoom = boomCount;
+			
+			buttonJPanel.removeAll();
+			buttonJPanel2.removeAll();
+		
+			Setting();
+		}
+	}
 	
 	public static void main(String[] args) {
 		Game panelFrame = new Game();
